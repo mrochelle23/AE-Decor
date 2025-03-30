@@ -9,7 +9,7 @@ function Footer() {
           <li><a href="https://instagram.com/aedecor1" className="hover:text-gray-400">Instagram</a></li>
           <li><a href="mailto:contact@aedecor.com" className="hover:text-gray-400">Email Us</a></li>
         </ul>
-        <p>&copy; 2024 AE Decor. All rights reserved.</p>
+        <p>&copy; 2025 AE Decor. All rights reserved.</p>
       </div>
     </footer>
   );

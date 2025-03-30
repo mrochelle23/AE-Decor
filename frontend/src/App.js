@@ -9,6 +9,7 @@ import ContactForm from './components/ContactForm';
 import About from './components/About';
 import Cart from './components/Cart';
 import { CartProvider } from './context/CartContext';
+import BookDetails from './components/BookDetails';
 
 function App() {
   return (
@@ -18,12 +19,13 @@ function App() {
           <Header />
           <main className="flex-grow">
             <Routes>
-              <Route exact path="/" element={<Home />} />
+              <Route path="/" element={<Home />} />
               <Route path="/books" element={<BookList />} />
               <Route path="/appointments" element={<AppointmentForm />} />
               <Route path="/contact" element={<ContactForm />} />
               <Route path="/about" element={<About />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path='/boks/:id' element={<BookDetails />} />
             </Routes>
           </main>
           <Footer />

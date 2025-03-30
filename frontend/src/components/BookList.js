@@ -5,8 +5,8 @@ function BookList() {
   const { addToCart } = useContext(CartContext);
 
   const books = [
-    { id: 1, name: 'Distinctive Decor: Tablescaping Book', price: 45, image: '/images/book.png' },
-    { id: 2, name: 'New Edition: Tablescaping Book 2', price: 45, image: '/images/book.png' },
+    { id: 1, name: 'Distinctive Decor: Tablescaping Book', price: 45, image: '/images/book.png', quantity: 1 },
+    { id: 2, name: 'New Edition: Tablescaping Book 2', price: 45, image: '/images/book.png', quantity: 1 },
   ];
 
   return (
