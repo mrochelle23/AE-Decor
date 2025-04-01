@@ -8,8 +8,35 @@ import ContactForm from './components/ContactForm';
 import About from './components/About';
 import Cart from './components/Cart';
 import { CartProvider } from './context/CartContext';
+import BookDetails from './components/BookDetails';
+
 
 function App() {
+  const books = [
+    {
+      id: 1,
+      name: 'Distinctive Decor: Tablescaping Book',
+      price: 45,
+      image: '/images/book.png',
+      description: 'This is a great book about...',
+      author: 'Arthur White',
+      isbn: '1234567890',
+      format: 'Hardcover',
+      publicationDate: '2023-01-01',
+    },
+    {
+      id: 2,
+      name: 'New Edition: Tablescaping Book 2',
+      price: 45,
+      image: '/images/book.png',
+      description: 'This is a great book about...',
+      author: 'Arthur White',
+      isbn: '1234567890',
+      format: 'Hardcover',
+      publicationDate: '2023-01-01',
+    },
+  ];
+  
   return (
     <CartProvider>
       <Router>
@@ -18,7 +45,8 @@ function App() {
           <main className="flex-grow">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/books" element={<BookList />} />
+              <Route path="/books" element={<BookList books={books} />} />
+              <Route path="/books/:id" element={<BookDetails books={books} />} />
               <Route path="/contact" element={<ContactForm />} />
               <Route path="/about" element={<About />} />
               <Route path="/cart" element={<Cart />} />

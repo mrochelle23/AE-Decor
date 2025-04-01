@@ -41,7 +41,7 @@ function CartItem({ item = {}, updateCartQuantity, removeFromCart }) {
           className="w-16 h-16 object-contain mr-4"
         />
         <div>
-          <Link to={`/books/`} className="text-xl font-bold">
+          <Link to={`/books/${id}`} className="text-xl font-bold">
             {name || 'Unknown Item'}
           </Link>
           <p className="text-gray-700">${price || '0.00'}</p>
