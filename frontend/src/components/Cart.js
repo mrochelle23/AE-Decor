@@ -1,11 +1,9 @@
 import React, { useContext, useState } from 'react';
-import { CartContext } from '../context/CartContext';
 import { Link } from 'react-router-dom';
+import { CartContext } from '../context/CartContext';
 
 function Cart() {
   const { cart, updateCartQuantity, removeFromCart } = useContext(CartContext);
-
-  console.log('Cart context:', { cart, updateCartQuantity, removeFromCart });
 
   return (
     <div className="container mx-auto p-4">
@@ -28,42 +26,71 @@ function Cart() {
   );
 }
 
-function CartItem({ item, updateCartQuantity, removeFromCart }) {
+function CartItem({ item = {}, updateCartQuantity, removeFromCart }) {
+  const { id, name, price, image, quantity } = item;
+
+  // Define the isHovered state
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 flex items-center justify-between">
       <div className="flex items-center">
-        <img src={item.image} alt={item.name} className="w-16 h-16 object-contain mr-4" />
+        <img
+          src={image || '/images/default.png'} // Fallback to a default image
+          alt={name || 'Item'}
+          className="w-16 h-16 object-contain mr-4"
+        />
         <div>
-          <Link to={`/books/${item.id}`} className="text-xl font-bold text-blue-500 hover:underline">
-            {item.name}
+          <Link to={`/books/${id}`} className="text-xl font-bold text-blue-500 hover:underline">
+            {name || 'Unknown Item'}
           </Link>
-          <p className="text-gray-700">${item.price}</p>
+          <p className="text-gray-700">${price || '0.00'}</p>
         </div>
       </div>
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-          className="bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400 transition duration-300"
+      {/* Expandable Circle */}
+      <div
+        className="relative"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div
+          className={`flex items-center justify-center bg-blue-500 text-white font-bold rounded-full transition-all duration-300 ${
+            isHovered ? 'w-64 px-4' : 'w-12'
+          } h-12`}
         >
-          -
-        </button>
-        <span>{item.quantity}</span>
-        <button
-          onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-          className="bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400 transition duration-300"
-        >
-          +
-        </button>
-        {/* Trashcan Button */}
-        <button
-          onClick={() => removeFromCart(item.id)}
-          className="text-gray-700 px-3 py-2 rounded-full hover:bg-gray-400 transition duration-300 ml-4"
-        >
-          <i className="fas fa-trash"></i>
-        </button>
+          {isHovered ? (
+            <div className="flex items-center space-x-4">
+              {/* Decrement Button */}
+              <button
+                onClick={() => updateCartQuantity(id, quantity - 1)}
+                className="text-gray-700 px-2 py-1 rounded-full hover:bg-gray-400 transition duration-300"
+              >
+                -
+              </button>
+              {/* Quantity Display */}
+              <span className="mx-4">{quantity || 0}</span>
+              {/* Increment Button */}
+              <button
+                onClick={() => updateCartQuantity(id, quantity + 1)}
+                className="text-gray-700 px-2 py-1 rounded-full hover:bg-gray-400 transition duration-300"
+              >
+                +
+              </button>
+              {/* Trashcan Button */}
+              <button
+                onClick={() => removeFromCart(id)}
+                className="text-gray-700 px-2 py-1 rounded-full hover:bg-gray-400 transition duration-300"
+              >
+              <i className="fas fa-trash"></i>
+              </button>
+            </div>
+          ) : (
+            <span>{quantity || 0}</span>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-export default CartItem;
+export default Cart;
