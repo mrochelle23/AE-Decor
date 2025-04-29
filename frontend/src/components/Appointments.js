@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
+import '../CustomCalendar.css';
 
 function Appointments() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -41,13 +42,13 @@ function Appointments() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
+
     // Limit the message to 500 characters
     if (name === 'message' && value.length > 500) {
       alert('Message cannot exceed 500 characters.');
       return;
     }
-  
+
     setUserDetails((prevDetails) => ({
       ...prevDetails,
       [name]: value,
@@ -93,6 +94,39 @@ function Appointments() {
     }
   };
 
+  // Disable past dates in the calendar
+  const isDateDisabled = ({ date }) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to midnight
+    return date < today; // Disable dates before today
+  };
+
+  // Filter out past times for the selected date
+  const getAvailableTimes = () => {
+    const now = new Date();
+    if (selectedDate.toDateString() === now.toDateString()) {
+      const currentHour = now.getHours();
+      const currentMinutes = now.getMinutes();
+
+      return times.filter((time) => {
+        const [hour, modifier] = time.split(' ');
+        let [hours, minutes] = hour.split(':');
+        hours = parseInt(hours);
+
+        if (modifier === 'PM' && hours !== 12) {
+          hours += 12;
+        } else if (modifier === 'AM' && hours === 12) {
+          hours = 0;
+        }
+
+        return (
+          hours > currentHour || (hours === currentHour && parseInt(minutes) > currentMinutes)
+        );
+      });
+    }
+    return times; // Return all times if the selected date is not today
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-3xl font-bold mb-8 text-center">Book a Tablescaping Consultation</h2>
@@ -106,11 +140,12 @@ function Appointments() {
             onChange={handleDateChange}
             value={selectedDate}
             className="mb-8"
+            tileDisabled={isDateDisabled} // Disable past dates
           />
 
           {/* Time Slots */}
           <div className="grid grid-cols-3 gap-4 mb-8">
-            {times.map((time) => (
+            {getAvailableTimes().map((time) => (
               <button
                 key={time}
                 onClick={() => handleTimeSelect(time)}
@@ -127,104 +162,111 @@ function Appointments() {
         </div>
       )}
 
-    {step === 2 && (
-    <div className="flex flex-col md:flex-row items-start justify-between w-full">
-        {/* Left Column: Client Details */}
-        <div className="w-full md:w-1/2 pr-4">
-        <h3 className="text-xl font-bold mb-4">Client Details</h3>
-        <hr className="border-gray-300 w-full mb-6" />
-        <div className="mb-4">
-            <input
-            type="text"
-            name="name"
-            value={userDetails.name}
-            onChange={handleInputChange}
-            className="border rounded px-4 py-2 w-full"
-            placeholder="Name"
-            required
-            />
-        </div>
-        <div className="mb-4">
-            <input
-            type="email"
-            name="email"
-            value={userDetails.email}
-            onChange={handleInputChange}
-            className="border rounded px-4 py-2 w-full"
-            placeholder="Email"
-            required
-            />
-        </div>
-        <div className="mb-4">
-            <input
-            type="tel"
-            name="phone"
-            value={userDetails.phone}
-            onChange={handleInputChange}
-            className="border rounded px-4 py-2 w-full"
-            placeholder="Phone"
-            required
-            />
-        </div>
-        <div className="mb-4 relative">
-            <textarea
+      {step === 2 && (
+        <div className="flex flex-col md:flex-row items-start justify-between w-full">
+          {/* Left Column: Client Details */}
+          <div className="w-full md:w-1/2 pr-4">
+            <h3 className="text-xl font-bold mb-4">Client Details</h3>
+            <hr className="border-gray-300 w-full mb-6" />
+            <div className="mb-4">
+              <input
+                type="text"
+                name="name"
+                value={userDetails.name}
+                onChange={handleInputChange}
+                className="border rounded px-4 py-2 w-full"
+                placeholder="Name"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <input
+                type="email"
+                name="email"
+                value={userDetails.email}
+                onChange={handleInputChange}
+                className="border rounded px-4 py-2 w-full"
+                placeholder="Email"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <input
+                type="tel"
+                name="phone"
+                value={userDetails.phone}
+                onChange={handleInputChange}
+                className="border rounded px-4 py-2 w-full"
+                placeholder="Phone"
+                required
+              />
+            </div>
+            <div className="mb-4 relative">
+              <textarea
                 name="message"
-                placeholder='Message (optional)'
+                placeholder="Message (optional)"
                 value={userDetails.message}
                 onChange={handleInputChange}
                 onInput={(e) => {
-                e.target.style.height = 'auto'; // Reset height to auto to calculate new height
-                e.target.style.height = `${e.target.scrollHeight}px`; // Set height based on scrollHeight
+                  e.target.style.height = 'auto'; // Reset height to auto to calculate new height
+                  e.target.style.height = `${e.target.scrollHeight}px`; // Set height based on scrollHeight
                 }}
                 className="border rounded px-4 py-2 w-full"
                 maxLength="500"
                 style={{ overflow: 'hidden', resize: 'none' }} // Prevent manual resizing
-            />
-            <span
+              />
+              <span
                 className="absolute bottom-2 right-4 text-sm text-gray-500"
                 style={{ pointerEvents: 'none' }} // Prevent interaction with the counter
-            >
+              >
                 {userDetails.message.length}/500
-            </span>
+              </span>
             </div>
-        </div>
+          </div>
 
-        {/* Right Column: Booking Details, Payment Details, and Book Now Button */}
-        <div className="w-full md:w-1/2 pl-4">
-        {/* Booking Details */}
-        <div className="w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Booking Details</h3>
-            <hr className="border-gray-300 w-full mb-6" />
-            <p className="text-gray-700">
-            Tablescaping Consultation
-            </p>
-            <p className="text-gray-700">
-            {selectedDate.toDateString()} at {selectedTime}
-            </p>
-            <p className="text-gray-700">
-            1 hour
-            </p>
-        </div>
+          {/* Right Column: Booking Details, Payment Details, and Buttons */}
+          <div className="w-full md:w-1/2 pl-4">
+            {/* Booking Details */}
+            <div className="w-full max-w-md">
+              <h3 className="text-xl font-bold mb-4">Booking Details</h3>
+              <hr className="border-gray-300 w-full mb-6" />
+              <p className="text-gray-700">Tablescaping Consultation</p>
+              <p className="text-gray-700">
+                {selectedDate.toDateString()} at {selectedTime}
+              </p>
+              <p className="text-gray-700">1 hour</p>
+            </div>
 
-        {/* Payment Details */}
-        <div className="w-full max-w-md mt-8">
-            <h3 className="text-xl font-bold mb-4">Payment Details</h3>
-            <p className="text-gray-700">
-            <strong>Total:</strong> $75
-            <hr className="border-gray-300 w-full mb-6" />
-            </p>
-        </div>
+            {/* Payment Details */}
+            <div className="w-full max-w-md mt-8">
+              <h3 className="text-xl font-bold mb-4">Payment Details</h3>
+              <p className="text-gray-700">
+                <strong>Total:</strong> $75
+                <hr className="border-gray-300 w-full mb-6" />
+              </p>
+            </div>
 
-        {/* Book Now Button */}
-        <button
-            onClick={handleConfirm}
-            className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition duration-300 mt-2"
-        >
-            Book Now
-        </button>
+            {/* Buttons */}
+            <div className="flex space-x-4 mt-4">
+              {/* Back Button */}
+              <button
+                onClick={() => setStep(1)} // Go back to Step 1
+                className="bg-gray-500 text-white px-6 py-3 rounded hover:bg-gray-600 transition duration-300"
+              >
+                Back
+              </button>
+
+              {/* Book Now Button */}
+              <button
+                onClick={handleConfirm}
+                className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition duration-300"
+              >
+                Book Now
+              </button>
+            </div>
+          </div>
         </div>
-    </div>
-    )}
+      )}
     </div>
   );
 }
