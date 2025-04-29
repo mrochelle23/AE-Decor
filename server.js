@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Load your credentials JSON file
-const credentials = require('./credentials.json');
+const credentials = require('../credentials.json');
 const { client_id, client_secret, redirect_uris } = credentials.web;
 const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[1]);
 
@@ -59,7 +59,7 @@ app.post('/appointments', async (req, res) => {
   // Create the event object for Google Calendar
   const event = {
     summary: 'Tablescaping Consultation',
-    description: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message} || 'No message provided.'}`,
+    description: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message}` || 'No message provided.',
     start: {
       dateTime: `${date}T${time}:00`,
       timeZone: 'America/New_York',
