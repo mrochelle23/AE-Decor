@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Load your credentials JSON file
-const credentials = require('../credentials.json');
+const credentials = require('./credentials.json');
 const { client_id, client_secret, redirect_uris } = credentials.web;
 const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[1]);
 
