@@ -9,6 +9,7 @@ import About from './components/About';
 import Cart from './components/Cart';
 import { CartProvider } from './context/CartContext';
 import BookDetails from './components/BookDetails';
+import Appointments from './components/Appointments';
 
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/books" element={<BookList books={books} />} />
               <Route path="/books/:id" element={<BookDetails books={books} />} />
+              <Route path="/appointments" element={<Appointments />} />
               <Route path="/contact" element={<ContactForm />} />
               <Route path="/about" element={<About />} />
               <Route path="/cart" element={<Cart />} />
