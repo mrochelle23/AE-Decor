@@ -9,6 +9,7 @@
     "concurrently": "^7.0.0"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
     "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
