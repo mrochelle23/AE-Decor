@@ -39,23 +39,31 @@ function Home() {
         </div>
       </div>
 
-      {/* Updated grid container */}
+      {/* Grid container for displaying Books */}
       <div className="container mx-auto w-full grid grid-cols-2 max-834px:grid-cols-1 gap-8 mt-8">
         {books.map((book) => (
           <div
             key={book.id}
             className="bg-white rounded-lg shadow-lg overflow-hidden transform transition duration-500 hover:scale-105"
           >
-            <div className="w-full h-64 flex items-center justify-center bg-gray-100">
-              <img
-                src={book.image || '/images/book.png'}
-                alt={book.name}
-                className="object-contain max-h-full max-w-full"
-              />
-            </div>
+            {/* Link to the individual Book's page */}
+            <Link to={`/books/${book.id}`}>
+              <div className="w-full h-64 flex items-center justify-center bg-gray-100">
+                {/* Display Book image or fallback to default */}
+                <img
+                  src={book.image || '/images/book.png'}
+                  alt={book.name}
+                  className="object-contain max-h-full max-w-full"
+                />
+              </div>
+            </Link>
+            {/* Book details */}
             <div className="p-6">
+              {/* Book name */}
               <h3 className="text-2xl font-bold mb-2">{book.name}</h3>
+              {/* Book price */}
               <p className="text-gray-700 mb-4">${book.price}</p>
+              {/* Button to add the Book to the cart */}
               <button
                 onClick={() => addToCart(book)}
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
@@ -70,4 +78,5 @@ function Home() {
   );
 }
 
+// Exporting the Home component for use in other parts of the application
 export default Home;
