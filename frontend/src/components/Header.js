@@ -83,7 +83,7 @@ function Header() {
               className="text-2xl hover:text-gray-400"
               onClick={() => setIsMenuOpen(false)}
             >
-              Bo
+              Books
             </Link>
             <Link
               to="/apppointments"
