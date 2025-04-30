@@ -74,7 +74,7 @@ function BookDetails({ books }) {
               <img
                 src={book.image || '/images/default.png'}
                 alt={book.name}
-                className="w-80 h-100 object-cover mb-8 md:mb-0 md:mr-8"
+                className="w-80 h-100 object-cover mb-8 md:mb-0 md:mr-6"
               />
               {/* Modal Content */}
               <div className="text-left">

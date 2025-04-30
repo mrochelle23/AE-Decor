@@ -38,8 +38,9 @@ function Home() {
           </Link>
         </div>
       </div>
+
       {/* Updated grid container */}
-      <div className="container mx-auto w-full grid grid-cols-2 gap-8 mt-8">
+      <div className="container mx-auto w-full grid grid-cols-2 max-834px:grid-cols-1 gap-8 mt-8">
         {books.map((book) => (
           <div
             key={book.id}
