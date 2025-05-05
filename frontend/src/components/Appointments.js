@@ -204,7 +204,7 @@ function Appointments() {
                 className="mb-8"
                 tileDisabled={({ date }) => date < new Date().setHours(0, 0, 0, 0)}
               />
-              <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
                 {getAvailableTimes().map((time) => (
                   <button
                     key={time}
@@ -278,7 +278,7 @@ function Appointments() {
                 <p className="text-gray-700">Tablescaping Consultation</p>
                 <p className="text-gray-700">{selectedDate.toDateString()} at {selectedTime}</p>
                 <p className="text-gray-700">1 hour</p>
-                <div className="flex space-x-4 mt-4">
+                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
                   <button
                     onClick={() => setStep(1)}
                     className="px-6 py-3 rounded bg-gray-300 text-gray-700 hover:bg-gray-400"
@@ -324,11 +324,11 @@ function Appointments() {
                 Fetch Appointments
               </button>
               <button
-          onClick={() => setIsCancelFlow(false)} // Back button functionality
-          className="mt-4 px-6 py-3 rounded bg-gray-300 text-gray-700 hover:bg-gray-400"
-        >
-          Back
-        </button>
+                onClick={() => setIsCancelFlow(false)}
+                className="mt-4 px-6 py-3 rounded bg-gray-300 text-gray-700 hover:bg-gray-400"
+              >
+                Back
+              </button>
             </div>
           ) : (
             <div>
@@ -350,14 +350,14 @@ function Appointments() {
               </ul>
               <button
                 onClick={handleCancelSelectedAppointments}
-                disabled={loading}
+                disabled={cancelLoading}
                 className={`px-6 py-3 rounded ${
-                  loading
+                  cancelLoading
                     ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                    : 'bg-red-500 text-white hover:bg-red-600'
                 }`}
               >
-                {loading ? 'Cancelling...' : 'Cancel Selected Appointments'}
+                {cancelLoading ? 'Canceling...' : 'Cancel Selected Appointments'}
               </button>
               <button
                 onClick={() => setIsCancelFlow(false)}
