@@ -5,21 +5,29 @@ import { CartContext } from '../context/CartContext';
 function Cart() {
   const { cart, updateCartQuantity, removeFromCart } = useContext(CartContext);
 
+  // Calculate the total price of the cart
+  const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-3xl font-bold mb-8 text-center">Shopping Cart</h2>
       {cart.length === 0 ? (
         <p className="text-center">Your cart is empty.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {cart.map((item) => (
-            <CartItem
-              key={item.id}
-              item={item}
-              updateCartQuantity={updateCartQuantity}
-              removeFromCart={removeFromCart}
-            />
-          ))}
+        <div>
+          <div className="grid grid-cols-1 gap-4">
+            {cart.map((item) => (
+              <CartItem
+                key={item.id}
+                item={item}
+                updateCartQuantity={updateCartQuantity}
+                removeFromCart={removeFromCart}
+              />
+            ))}
+          </div>
+          <div className="mt-8 text-right">
+            <h3 className="text-2xl font-bold">Total: ${totalPrice.toFixed(2)}</h3>
+          </div>
         </div>
       )}
     </div>
@@ -31,6 +39,9 @@ function CartItem({ item = {}, updateCartQuantity, removeFromCart }) {
 
   // Define the isHovered state
   const [isHovered, setIsHovered] = useState(false);
+
+  // Calculate the total price for this item
+  const itemTotalPrice = price * quantity;
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 flex items-center justify-between">
@@ -44,7 +55,7 @@ function CartItem({ item = {}, updateCartQuantity, removeFromCart }) {
           <Link to={`/books/${id}`} className="text-xl font-bold">
             {name || 'Unknown Item'}
           </Link>
-          <p className="text-gray-700">${price || '0.00'}</p>
+          <p className="text-gray-700">${itemTotalPrice.toFixed(2)}</p>
         </div>
       </div>
       {/* Expandable Circle */}
@@ -81,7 +92,7 @@ function CartItem({ item = {}, updateCartQuantity, removeFromCart }) {
                 onClick={() => removeFromCart(id)}
                 className="text-gray-700 px-2 py-1 rounded-full hover:bg-gray-400 transition duration-300"
               >
-              <i className="fas fa-trash"></i>
+                <i className="fas fa-trash"></i>
               </button>
             </div>
           ) : (
