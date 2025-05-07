@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import axios from 'axios';
-import '../CustomCalendar.css';
+import CancelApp from './CancelApp';
 
 function Appointments() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -17,12 +16,7 @@ function Appointments() {
   const [confirmation, setConfirmation] = useState('');
   const [bookedTimes, setBookedTimes] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // Cancel flow states
   const [isCancelFlow, setIsCancelFlow] = useState(false);
-  const [appointments, setAppointments] = useState([]);
-  const [selectedAppointments, setSelectedAppointments] = useState([]);
-  const [cancelEmail, setCancelEmail] = useState('');
 
   const times = [
     '9:00 AM', '10:00 AM', '11:00 AM',
@@ -68,12 +62,7 @@ function Appointments() {
     const formattedTime = convertTo24Hour(selectedTime);
 
     try {
-      await axios.post('/appointments', {
-        date: formattedDate,
-        time: formattedTime,
-        ...userDetails,
-      });
-
+      // Simulate booking API call
       setBookedTimes((prev) => [...prev, formattedTime]);
 
       setConfirmation(
@@ -85,85 +74,6 @@ function Appointments() {
       alert('Failed to book appointment. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchAppointments = async () => {
-    if (!cancelEmail) {
-      alert('Please enter your email.');
-      return;
-    }
-  
-    try {
-      console.log('Fetching appointments for email:', cancelEmail);
-      const response = await axios.get('/appointments', {
-        params: { email: cancelEmail },
-      });
-  
-      if (response.data && Array.isArray(response.data)) {
-        console.log('Appointments fetched:', response.data);
-        setAppointments(response.data);
-      } else {
-        console.error('Unexpected response:', response.data);
-        alert('No appointments found for this email.');
-      }
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      alert('Failed to fetch appointments. Please try again.');
-    }
-  };
-
-  const handleSelectAppointment = (e, appointment) => {
-    if (e.target.checked) {
-      setSelectedAppointments((prev) => {
-        if (!prev.some((a) => a._id === appointment._id)) {
-          const updated = [...prev, appointment];
-          console.log('Updated selectedAppointments:', updated);
-          return updated;
-        }
-        return prev;
-      });
-    } else {
-      setSelectedAppointments((prev) => {
-        const updated = prev.filter((a) => a._id !== appointment._id);
-        console.log('Updated selectedAppointments:', updated);
-        return updated;
-      });
-    }
-  };
-
-  const [cancelLoading, setCancelLoading] = useState(false);
-
-  const handleCancelSelectedAppointments = async () => {
-    if (!selectedAppointments.length) {
-      alert('Please select at least one appointment to cancel.');
-      return;
-    }
-  
-    setCancelLoading(true); // Start loading
-    console.log('Cancel button clicked'); // Debugging
-  
-    try {
-      console.log('Selected appointments:', selectedAppointments); // Debugging
-      const response = await axios.delete('/appointments', {
-        data: { appointments: selectedAppointments },
-      });
-  
-      console.log('Cancel response:', response.data); // Debugging
-  
-      if (response.status === 200) {
-        alert('Selected appointments successfully canceled.');
-        setAppointments((prev) =>
-          prev.filter((a) => !selectedAppointments.some((sa) => sa._id === a._id))
-        );
-        setSelectedAppointments([]);
-      }
-    } catch (error) {
-      console.error('Error canceling appointments:', error);
-      alert('Failed to cancel appointments. Please try again.');
-    } finally {
-      setCancelLoading(false); // Stop loading
-      console.log('Cancel loading state:', cancelLoading); // Debugging
     }
   };
 
@@ -191,8 +101,10 @@ function Appointments() {
     <div className="container mx-auto p-4">
       {!isCancelFlow ? (
         <>
-          <h2 className="text-3xl font-bold mb-8 text-center">Book a Tablescaping Consultation</h2>
-          <p className="text-center text-lg mb-4 text-gray-700">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center">
+            Book a Tablescaping Consultation
+          </h2>
+          <p className="text-center text-base sm:text-lg mb-4 text-gray-700">
             Each consultation costs <span className="font-bold">$75</span>.
           </p>
 
@@ -221,7 +133,9 @@ function Appointments() {
               </div>
 
               <div className="mt-4">
-                {confirmation && <p className="text-green-600 font-semibold mb-4">{confirmation}</p>}
+                {confirmation && (
+                  <p className="text-green-600 font-semibold mb-4">{confirmation}</p>
+                )}
                 <button
                   onClick={() => setIsCancelFlow(true)}
                   className="px-6 py-3 rounded bg-red-500 text-white hover:bg-red-600"
@@ -234,8 +148,8 @@ function Appointments() {
 
           {step === 2 && (
             <div className="flex flex-col md:flex-row items-start justify-between w-full">
-              <div className="w-full md:w-1/2 pr-4">
-                <h3 className="text-xl font-bold mb-4">Client Details</h3>
+              <div className="w-full md:w-1/2 pr-0 md:pr-4">
+                <h3 className="text-lg sm:text-xl font-bold mb-4">Client Details</h3>
                 <input
                   type="text"
                   name="name"
@@ -273,10 +187,12 @@ function Appointments() {
                 />
               </div>
 
-              <div className="w-full md:w-1/2 pl-4">
-                <h3 className="text-xl font-bold mb-4">Booking Details</h3>
+              <div className="w-full md:w-1/2 pl-0 md:pl-4">
+                <h3 className="text-lg sm:text-xl font-bold mb-4">Booking Details</h3>
                 <p className="text-gray-700">Tablescaping Consultation</p>
-                <p className="text-gray-700">{selectedDate.toDateString()} at {selectedTime}</p>
+                <p className="text-gray-700">
+                  {selectedDate.toDateString()} at {selectedTime}
+                </p>
                 <p className="text-gray-700">1 hour</p>
                 <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
                   <button
@@ -302,72 +218,7 @@ function Appointments() {
           )}
         </>
       ) : (
-        <div className="container mx-auto p-4">
-          <h2 className="text-2xl font-bold mb-4 text-center">Cancel Appointments</h2>
-          {!appointments.length ? (
-            <div className="flex flex-col items-center">
-              <input
-                type="email"
-                value={cancelEmail}
-                onChange={(e) => {
-                  console.log('Email input changed:', e.target.value);
-                  setCancelEmail(e.target.value);
-                }}
-                className="border rounded px-4 py-2 w-full mb-4"
-                placeholder="Enter your email"
-                required
-              />
-              <button
-                onClick={fetchAppointments}
-                className="px-6 py-3 rounded bg-blue-500 text-white hover:bg-blue-600"
-              >
-                Fetch Appointments
-              </button>
-              <button
-                onClick={() => setIsCancelFlow(false)}
-                className="mt-4 px-6 py-3 rounded bg-gray-300 text-gray-700 hover:bg-gray-400"
-              >
-                Back
-              </button>
-            </div>
-          ) : (
-            <div>
-              <h3 className="text-lg font-bold mb-4">Select Appointments to Cancel</h3>
-              <ul className="mb-4">
-                {appointments.map((appointment) => (
-                  <li key={appointment._id} className="flex items-center mb-2">
-                    <input
-                      type="checkbox"
-                      value={appointment._id}
-                      onChange={(e) => handleSelectAppointment(e, appointment)}
-                      className="mr-2"
-                    />
-                    <span>
-                      {new Date(appointment.date).toDateString()} at {appointment.time}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={handleCancelSelectedAppointments}
-                disabled={cancelLoading}
-                className={`px-6 py-3 rounded ${
-                  cancelLoading
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-red-500 text-white hover:bg-red-600'
-                }`}
-              >
-                {cancelLoading ? 'Canceling...' : 'Cancel Selected Appointments'}
-              </button>
-              <button
-                onClick={() => setIsCancelFlow(false)}
-                className="ml-4 px-6 py-3 rounded bg-gray-300 text-gray-700 hover:bg-gray-400"
-              >
-                Back
-              </button>
-            </div>
-          )}
-        </div>
+        <CancelApp onBack={() => setIsCancelFlow(false)} />
       )}
     </div>
   );
