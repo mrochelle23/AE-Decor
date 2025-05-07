@@ -86,7 +86,7 @@ function Header() {
               Books
             </Link>
             <Link
-              to="/apppointments"
+              to="/appointments"
               className="text-2xl hover:text-gray-400"
               onClick={() => setIsMenuOpen(false)}
             >
@@ -131,7 +131,7 @@ function Header() {
             </li>
             <li>
               <Link to="/appointments" className="hover:text-gray-400">
-                appointments
+                Appointments
               </Link>
             </li>
             <li>
