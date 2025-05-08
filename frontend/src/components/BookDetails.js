@@ -26,7 +26,7 @@ function BookDetails({ books }) {
   };
 
   return (
-    <div className="container mx-auto p-10">
+    <div className="container mx-auto p-4 md:p-10">
       <div className="flex flex-col md:flex-row items-center md:items-start">
         {/* Left: Book Image */}
         <img
@@ -61,31 +61,31 @@ function BookDetails({ books }) {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-12 w-full max-w-3xl relative">
+          <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 w-full max-w-sm md:max-w-md max-h-[80vh] overflow-y-auto relative">
             {/* Close Button (X) */}
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-3xl font-bold"
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl font-bold"
             >
               &times;
             </button>
-            <div className="flex flex-col md:flex-row items-left md:items-start">
+            <div className="flex flex-col items-center">
               {/* Book Image */}
               <img
                 src={book.image || '/images/default.png'}
                 alt={book.name}
-                className="w-80 h-100 object-cover mb-8 md:mb-0 md:mr-6"
+                className="w-24 h-32 object-contain mb-4"
               />
               {/* Modal Content */}
-              <div className="text-left">
-                <h2 className="text-3xl font-bold mb-6">Added to your cart</h2>
-                <p className="text-lg">ISBN: {book.isbn}</p>
-                <p className="text-lg">Format: {book.format}</p>
-                <p className="text-gray-700 text-1xl font-bold mt-3 mb-5">${book.price}</p>
+              <div className="text-center">
+                <h2 className="text-xl font-bold mb-2">Added to your cart</h2>
+                <p className="text-sm">ISBN: {book.isbn}</p>
+                <p className="text-sm">Format: {book.format}</p>
+                <p className="text-gray-700 text-lg font-bold mt-2 mb-4">${book.price}</p>
                 {/* Go to Cart Button */}
                 <button
                   onClick={handleCheckout}
-                  className="bg-blue-500 text-white px-7 py-3 rounded hover:bg-blue-600 text-lg"
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
                 >
                   Go to Cart
                 </button>
