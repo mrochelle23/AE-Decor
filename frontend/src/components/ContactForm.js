@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import "../ContactForm.css"; // Import your CSS file for styling
 
 function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    message: ''
+    message: '',
   });
+  const [loading, setLoading] = useState(false); // Loading state
+  const [confirmation, setConfirmation] = useState(''); // Confirmation message
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -27,11 +30,18 @@ function ContactForm() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true); // Start loading
+    setConfirmation(''); // Clear previous confirmation message
+
     try {
-      const response = await axios.post('http://localhost:5001/contact', formData);
-      alert(response.data.message);
+      const response = await axios.post('https://ae-decor.onrender.com/contact', formData);
+      setConfirmation(response.data.message); // Show success message
+      setFormData({ name: '', email: '', message: '' }); // Reset form
     } catch (error) {
       console.error('There was an error sending the message!', error);
+      alert('There was an error sending your message. Please try again later.');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -57,27 +67,43 @@ function ContactForm() {
           required
           placeholder="Your Email"
         />
-       <div className="relative">
-        <textarea
-          name="message"
-          value={formData.message}
-          onChange={handleChange}
-          className="border p-4 mb-4 w-full rounded resize-none pr-20 pb-10"
-          required
-          placeholder="Your Message"
-          rows="4" // Initial height
-        />
-        <div className="absolute bottom-6 right-3 text-sm text-gray-500 pointer-events-none">
-          {formData.message.length}/500
+        <div className="relative">
+          <textarea
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            className="border p-4 mb-4 w-full rounded resize-none pr-20 pb-10"
+            required
+            placeholder="Your Message"
+            rows="4" // Initial height
+          />
+          <div className="absolute bottom-6 right-3 text-sm text-gray-500 pointer-events-none">
+            {formData.message.length}/500
+          </div>
         </div>
-      </div>
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          disabled={loading} // Disable button while loading
+          className={`px-6 py-3 rounded ${
+            loading
+              ? 'bg-gray-400 text-white cursor-not-allowed'
+              : 'bg-blue-500 text-white hover:bg-blue-600'
+          }`}
         >
-          Send Message
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <div className="spinner border-t-4 border-white rounded-full w-5 h-5 animate-spin mr-2"></div>
+              Sending...
+            </div>
+          ) : (
+            'Send Message'
+          )}
         </button>
       </form>
+
+      {confirmation && (
+        <div className="mt-4 text-green-600 font-semibold text-center">{confirmation}</div>
+      )}
     </div>
   );
 }
