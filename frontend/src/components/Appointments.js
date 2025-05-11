@@ -63,7 +63,7 @@ function Appointments() {
     const formattedTime = convertTo24Hour(selectedTime);
 
     try {
-      const response = await axios.post('https://ae-decor.onrender.com/api/appointments', {
+      const response = await axios.post('api/appointments', {
         date: formattedDate,
         time: formattedTime,
         ...userDetails,
