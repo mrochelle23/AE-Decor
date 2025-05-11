@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import CancelApp from './CancelApp';
+import axios from 'axios';
 
 function Appointments() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -17,6 +18,7 @@ function Appointments() {
   const [bookedTimes, setBookedTimes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isCancelFlow, setIsCancelFlow] = useState(false);
+  const [cancelSuccessMessage, setCancelSuccessMessage] = useState(''); // New state for success message
 
   const times = [
     '9:00 AM', '10:00 AM', '11:00 AM',
@@ -24,7 +26,6 @@ function Appointments() {
     '3:00 PM', '4:00 PM', '5:00 PM',
   ];
 
-  // Convert 12-hour format to 24-hour format
   const convertTo24Hour = (time12h) => {
     const [time, modifier] = time12h.split(' ');
     let [hours, minutes] = time.split(':');
@@ -62,13 +63,21 @@ function Appointments() {
     const formattedTime = convertTo24Hour(selectedTime);
 
     try {
-      // Simulate booking API call
-      setBookedTimes((prev) => [...prev, formattedTime]);
+      const response = await axios.post('http://localhost:5001/api/appointments', {
+        date: formattedDate,
+        time: formattedTime,
+        ...userDetails,
+      });
 
-      setConfirmation(
-        `Your tablescaping consultation is scheduled for ${selectedDate.toDateString()} at ${selectedTime}.`
-      );
-      setStep(1);
+      if (response.status === 200) {
+        setBookedTimes((prev) => [...prev, formattedTime]);
+        setConfirmation(
+          `Your tablescaping consultation is scheduled for ${selectedDate.toDateString()} at ${selectedTime}.`
+        );
+        setStep(1);
+      } else {
+        alert('Failed to book the appointment. Please try again.');
+      }
     } catch (error) {
       console.error('Error booking appointment:', error);
       alert('Failed to book appointment. Please try again.');
@@ -77,23 +86,78 @@ function Appointments() {
     }
   };
 
+  const handleCancelAppointments = async (appointmentsToCancel) => {
+    try {
+      const response = await axios.delete('http://localhost:5001/api/appointments', {
+        data: { appointments: appointmentsToCancel },
+      });
+
+      if (response.status === 200) {
+        setCancelSuccessMessage('Appointments cancelled successfully'); // Set success message
+        setTimeout(() => setCancelSuccessMessage(''), 5000); // Clear message after 5 seconds
+        // Optionally, refresh booked times or other data
+      }
+    } catch (error) {
+      console.error('Error cancelling appointments:', error);
+      alert('Failed to cancel appointments. Please try again.');
+    }
+  };
+
+  useEffect(() => {
+    const fetchBookedTimes = async () => {
+      try {
+        const formattedDate = selectedDate.toISOString().split('T')[0];
+        console.log('Fetching booked times for date:', formattedDate);
+
+        const response = await axios.get('http://localhost:5001/api/appointments', {
+          params: { date: formattedDate },
+        });
+
+        console.log('Response from backend:', response.data);
+
+        if (response.data && Array.isArray(response.data)) {
+          const times = response.data.map((appointment) =>
+            appointment.time.slice(0, 5) // Truncate to 'HH:mm'
+          );
+          console.log('Mapped booked times (HH:mm):', times);
+          setBookedTimes(times);
+        }
+      } catch (error) {
+        console.error('Error fetching booked times:', error);
+      }
+    };
+
+    fetchBookedTimes();
+  }, [selectedDate]);
+
   const getAvailableTimes = () => {
     const now = new Date();
     const isToday = selectedDate.toDateString() === now.toDateString();
 
     const availableTimes = times.filter((time) => {
       const time24 = convertTo24Hour(time);
+      console.log(`Checking time: ${time24}`);
+
+      if (bookedTimes.includes(time24)) {
+        console.log(`Time ${time24} is booked and will be excluded.`);
+        return false;
+      }
 
       if (isToday) {
         const [hours, minutes] = time24.split(':').map(Number);
         const timeDate = new Date(selectedDate);
         timeDate.setHours(hours, minutes, 0, 0);
-        if (timeDate < now) return false;
+        if (timeDate < now) {
+          console.log(`Time ${time24} is in the past and will be excluded.`);
+          return false;
+        }
       }
 
-      return !bookedTimes.includes(time24);
+      console.log(`Time ${time24} is available.`);
+      return true;
     });
 
+    console.log('Available times:', availableTimes);
     return availableTimes;
   };
 
@@ -107,6 +171,12 @@ function Appointments() {
           <p className="text-center text-base sm:text-lg mb-4 text-gray-700">
             Each consultation costs <span className="font-bold">$75</span>.
           </p>
+
+          {cancelSuccessMessage && (
+            <div className="text-green-600 font-semibold mb-4 text-center">
+              {cancelSuccessMessage}
+            </div>
+          )}
 
           {step === 1 && (
             <div className="flex flex-col items-center">
@@ -218,7 +288,10 @@ function Appointments() {
           )}
         </>
       ) : (
-        <CancelApp onBack={() => setIsCancelFlow(false)} />
+        <CancelApp
+          onBack={() => setIsCancelFlow(false)}
+          onCancel={handleCancelAppointments} // Pass the cancel handler
+        />
       )}
     </div>
   );

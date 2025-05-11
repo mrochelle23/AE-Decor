@@ -20,16 +20,27 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const mongoose = require('mongoose');
+const Booking = require('./models/Booking');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') }); // Load environment variables
 
 const MONGO_URI = process.env.MONGO_URI; // Your MongoDB connection string
 
 // Connect to MongoDB using Mongoose
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 30000, // 30 seconds
-});
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true, serverSelectionTimeoutMS: 30000 })
+  .then(async () => {
+    console.log('Connected to MongoDB');
+    
+    // Fetch and log all appointments on server startup
+    try {
+      const appointments = await Booking.find();
+      console.log('Appointments stored in MongoDB on startup:', appointments);
+    } catch (error) {
+      console.error('Error fetching appointments on startup:', error);
+    }
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
+  });
 
 mongoose.connection.on('connected', () => {
   console.log('Connected to MongoDB');
@@ -133,10 +144,8 @@ async function refreshAccessToken() {
   }
 }
 
-const Booking = require('./models/Booking');
-
 // Endpoint to book an appointment
-app.post('/appointments', async (req, res) => {
+app.post('/api/appointments', async (req, res) => {
   const { date, time, name, email, phone, message } = req.body;
 
   try {
@@ -187,20 +196,19 @@ app.post('/appointments', async (req, res) => {
 });
 
 // Endpoint to fetch appointments by email
-app.get('/appointments', async (req, res) => {
-  const { email } = req.query;
+app.get('/api/appointments', async (req, res) => {
+  const { date } = req.query; // Extract the date from the query parameters
 
   try {
-    if (!email) {
-      return res.status(400).send({ message: 'Email is required' });
-    }
+    const query = {};
+    if (date) query.date = date; // Filter by date if provided
 
-    const appointments = await Booking.find({ email });
-    if (!appointments.length) {
-      return res.status(404).send({ message: 'No appointments found' });
-    }
+    console.log('Query sent to MongoDB:', query); // Debugging: Log the query
 
-    res.status(200).json(appointments);
+    const appointments = await Booking.find(query); // Fetch appointments matching the query
+    console.log('Fetched appointments from MongoDB:', appointments); // Debugging: Log fetched appointments
+
+    res.status(200).json(appointments); // Return the appointments
   } catch (error) {
     console.error('Error fetching appointments:', error);
     res.status(500).send({ message: 'Failed to fetch appointments', error });
@@ -208,26 +216,17 @@ app.get('/appointments', async (req, res) => {
 });
 
 // Endpoint to delete an appointment
-// Endpoint to delete an appointment
-app.delete('/appointments', async (req, res) => {
+app.delete('/api/appointments', async (req, res) => {
   const { appointments } = req.body;
 
   try {
     console.log('Received delete request for appointments:', appointments); // Debugging
-
-    if (!appointments || !appointments.length) {
-      return res.status(400).send({ message: 'No appointments provided' });
-    }
 
     const ids = appointments.map((appointment) => appointment._id);
     console.log('Deleting appointments with IDs:', ids); // Debugging
 
     const result = await Booking.deleteMany({ _id: { $in: ids } });
     console.log('Delete result:', result); // Debugging
-
-    if (result.deletedCount === 0) {
-      return res.status(404).send({ message: 'No appointments found to delete' });
-    }
 
     // Send confirmation emails
     for (const appointment of appointments) {
@@ -262,29 +261,6 @@ app.delete('/appointments', async (req, res) => {
   } catch (error) {
     console.error('Error deleting appointments:', error);
     res.status(500).send({ message: 'Failed to delete appointments', error });
-  }
-});
-
-// Endpoint to fetch booked times for a specific date
-app.get('/appointments', async (req, res) => {
-  const { email } = req.query;
-
-  console.log('Received email:', email); // Debugging
-
-  if (!email) {
-    return res.status(400).send({ message: 'Email is required' });
-  }
-
-  try {
-    const appointments = await Booking.find({ email });
-    if (!appointments.length) {
-      return res.status(404).send({ message: 'No appointments found' });
-    }
-
-    res.status(200).json(appointments);
-  } catch (error) {
-    console.error('Error fetching appointments:', error);
-    res.status(500).send({ message: 'Failed to fetch appointments', error });
   }
 });
 
