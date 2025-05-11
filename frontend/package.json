@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
-  "homepage": "http://localhost:5001",
+  "homepage": "https://ae-decor.onrender.com/",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:5001",
+  "proxy": "https://ae-decor.onrender.com/",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@react-spring/web": "^9.7.5",
