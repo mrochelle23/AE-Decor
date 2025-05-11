@@ -63,7 +63,7 @@ function Appointments() {
     const formattedTime = convertTo24Hour(selectedTime);
 
     try {
-      const response = await axios.post('api/appointments', {
+      const response = await axios.post('https://ae-decor.onrender.com/api/appointments', {
         date: formattedDate,
         time: formattedTime,
         ...userDetails,
@@ -109,7 +109,7 @@ function Appointments() {
         const formattedDate = selectedDate.toISOString().split('T')[0];
         console.log('Fetching booked times for date:', formattedDate);
 
-        const response = await axios.get('/api/appointments', {
+        const response = await axios.get('https://ae-decor.onrender.com/api/appointments', {
           params: { date: formattedDate },
         });
 
