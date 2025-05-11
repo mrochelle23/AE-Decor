@@ -109,7 +109,7 @@ function Appointments() {
         const formattedDate = selectedDate.toISOString().split('T')[0];
         console.log('Fetching booked times for date:', formattedDate);
 
-        const response = await axios.get('https://ae-decor.onrender.com/api/appointments', {
+        const response = await axios.get('/api/appointments', {
           params: { date: formattedDate },
         });
 
