@@ -14,7 +14,7 @@ function CancelApp({ onBack }) {
     }
 
     try {
-      const response = await axios.get('/appointments', {
+      const response = await axios.get('/api/appointments', {
         params: { email: cancelEmail },
       });
 
@@ -48,7 +48,7 @@ function CancelApp({ onBack }) {
     setCancelLoading(true);
 
     try {
-      const response = await axios.delete('/appointments', {
+      const response = await axios.delete('/api/appointments', {
         data: { appointments: selectedAppointments },
       });
 
