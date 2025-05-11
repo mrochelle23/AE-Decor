@@ -4,14 +4,15 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') }); // Load environment variables from .env file
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+
 console.log('MongoDB URI:', process.env.MONGO_URI);
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // Use your email provider
+  service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, // Your email address
-    pass: process.env.EMAIL_PASS, // Your email password or app password
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -21,16 +22,9 @@ app.use(cors());
 
 const mongoose = require('mongoose');
 const Booking = require('./models/Booking');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') }); // Load environment variables
-
-const MONGO_URI = process.env.MONGO_URI; // Your MongoDB connection string
-
-// Connect to MongoDB using Mongoose
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true, serverSelectionTimeoutMS: 30000 })
   .then(async () => {
     console.log('Connected to MongoDB');
-    
-    // Fetch and log all appointments on server startup
     try {
       const appointments = await Booking.find();
       console.log('Appointments stored in MongoDB on startup:', appointments);
@@ -49,52 +43,40 @@ mongoose.connection.on('connected', () => {
 
 mongoose.connection.on('error', (error) => {
   console.error('Error connecting to MongoDB:', error);
-  process.exit(1); // Exit the process if the database connection fails
+  process.exit(1);
 });
+
+// Utility function to convert 24-hour time to 12-hour format
+function formatTo12Hour(time24) {
+  const [hour, minute] = time24.split(':');
+  const date = new Date();
+  date.setHours(hour, minute);
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
 
 // Contact form endpoint
 app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
 
   try {
-    // Nodemailer transporter setup
-    const transporter = nodemailer.createTransport({
-      service: 'gmail', // Use your email provider
-      auth: {
-        user: process.env.EMAIL_USER, // Your email address
-        pass: process.env.EMAIL_PASS, // Your email password or app password
-      },
-    });
-
-    // Email to the business
     const businessMailOptions = {
       from: `"AE Decor" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // Business email address
+      to: process.env.EMAIL_USER,
       subject: 'New Contact Form Submission',
-      text: `You have received a new message from your website contact form:
-
-Name: ${name}
-Email: ${email}
-Message: ${message}`,
+      text: `You have received a new message from your website contact form:\n\nName: ${name}\nEmail: ${email}\nMessage: ${message}`,
     };
 
-    // Confirmation email to the user
     const userMailOptions = {
       from: `"AE Decor" <${process.env.EMAIL_USER}>`,
-      to: email, // User's email address
+      to: email,
       subject: 'Thank You for Contacting Us',
-      text: `Dear ${name},
-
-Thank you for reaching out to us. We have received your message and will get back to you shortly.
-
-Here is a copy of your message:
-${message}
-
-Best regards,
-AE Decor`,
+      text: `Dear ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nHere is a copy of your message:\n${message}\n\nBest regards,\nAE Decor`,
     };
 
-    // Send emails
     await transporter.sendMail(businessMailOptions);
     await transporter.sendMail(userMailOptions);
 
@@ -105,30 +87,23 @@ AE Decor`,
   }
 });
 
-// Load your credentials JSON file
+// Google Calendar Setup
 const credentials = require('./credentials.json');
 const { client_id, client_secret, redirect_uris } = credentials.web;
 const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[1]);
 
-// Set your refresh token (store it in .env for security)
-oAuth2Client.setCredentials({
-  refresh_token: process.env.REFRESH_TOKEN,
-});
+oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
-// Initialize the Google Calendar API client
 const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
 
-// Middleware to check if the token is expired
 async function checkAndRefreshToken() {
   const token = oAuth2Client.credentials;
   const expiresIn = token.expiry_date - Date.now();
-
   if (expiresIn < 0) {
     await refreshAccessToken();
   }
 }
 
-// Refresh the access token using the refresh token
 async function refreshAccessToken() {
   try {
     const res = await oAuth2Client.refreshAccessToken();
@@ -144,24 +119,25 @@ async function refreshAccessToken() {
   }
 }
 
-// Endpoint to book an appointment
+// Book appointment
 app.post('/api/appointments', async (req, res) => {
   const { date, time, name, email, phone, message } = req.body;
 
   try {
     console.log('Received booking request:', { date, time, name, email, phone, message });
 
-    // Save the booking to MongoDB
     const newBooking = new Booking({ date, time, name, email, phone, message });
     await newBooking.save();
     console.log('Booking saved to MongoDB:', newBooking);
 
-    // Create the Google Calendar event
+    const endHour = parseInt(time.split(':')[0]) + 1;
+    const endTime = `${endHour.toString().padStart(2, '0')}:${time.split(':')[1]}`;
+
     const event = {
       summary: 'Tablescaping Consultation',
       description: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message || 'No message provided.'}`,
       start: { dateTime: `${date}T${time}:00`, timeZone: 'America/New_York' },
-      end: { dateTime: `${date}T${parseInt(time.split(':')[0]) + 1}:${time.split(':')[1]}:00`, timeZone: 'America/New_York' },
+      end: { dateTime: `${date}T${endTime}:00`, timeZone: 'America/New_York' },
       attendees: [{ email }, { email: process.env.EMAIL_USER, organizer: true }],
       reminders: { useDefault: true },
     };
@@ -170,19 +146,20 @@ app.post('/api/appointments', async (req, res) => {
     const response = await calendar.events.insert({ calendarId: 'primary', resource: event });
     console.log('Event created:', response.data);
 
-    // Send confirmation emails
+    const formattedTime = formatTo12Hour(time);
+
     const userMailOptions = {
       from: `"AE Decor" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Booking Confirmation - Tablescaping Consultation',
-      text: `Dear ${name},\n\nThank you for booking a tablescaping consultation with AE Decor. Here are your booking details:\n\nDate: ${date}\nTime: ${time}\nDuration: 1 hour\nTotal: $75\n\nIf you have any questions, feel free to contact us.\n\nBest regards,\nAE Decor`,
+      text: `Dear ${name},\n\nThank you for booking a tablescaping consultation with AE Decor. Here are your booking details:\n\nDate: ${date}\nTime: ${formattedTime}\nDuration: 1 hour\nTotal: $75\n\nIf you have any questions, feel free to contact us.\n\nBest regards,\nAE Decor`,
     };
 
     const businessMailOptions = {
       from: `"AE Decor" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
       subject: 'New Booking - Tablescaping Consultation',
-      text: `A new tablescaping consultation has been booked. Here are the details:\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message || 'No message provided.'}\n\nDate: ${date}\nTime: ${time}\nDuration: 1 hour\nTotal: $75`,
+      text: `A new tablescaping consultation has been booked. Here are the details:\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message || 'No message provided.'}\n\nDate: ${date}\nTime: ${formattedTime}\nDuration: 1 hour\nTotal: $75`,
     };
 
     await transporter.sendMail(userMailOptions);
@@ -195,57 +172,49 @@ app.post('/api/appointments', async (req, res) => {
   }
 });
 
-// Endpoint to fetch appointments by email
+// Get appointments
 app.get('/api/appointments', async (req, res) => {
-  const { date } = req.query; // Extract the date from the query parameters
-
+  const { date } = req.query;
   try {
     const query = {};
-    if (date) query.date = date; // Filter by date if provided
+    if (date) query.date = date;
 
-    console.log('Query sent to MongoDB:', query); // Debugging: Log the query
+    console.log('Query sent to MongoDB:', query);
+    const appointments = await Booking.find(query);
+    console.log('Fetched appointments from MongoDB:', appointments);
 
-    const appointments = await Booking.find(query); // Fetch appointments matching the query
-    console.log('Fetched appointments from MongoDB:', appointments); // Debugging: Log fetched appointments
-
-    res.status(200).json(appointments); // Return the appointments
+    res.status(200).json(appointments);
   } catch (error) {
     console.error('Error fetching appointments:', error);
     res.status(500).send({ message: 'Failed to fetch appointments', error });
   }
 });
 
-// Endpoint to delete an appointment
+// Delete appointments
 app.delete('/api/appointments', async (req, res) => {
   const { appointments } = req.body;
 
   try {
-    console.log('Received delete request for appointments:', appointments); // Debugging
-
     const ids = appointments.map((appointment) => appointment._id);
-    console.log('Deleting appointments with IDs:', ids); // Debugging
-
     const result = await Booking.deleteMany({ _id: { $in: ids } });
-    console.log('Delete result:', result); // Debugging
+    console.log('Delete result:', result);
 
-    // Send confirmation emails
     for (const appointment of appointments) {
       const { date, time, email, name } = appointment;
+      const formattedTime = formatTo12Hour(time);
 
-      // Email to the user
       const userMailOptions = {
         from: `"AE Decor" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: 'Appointment Cancellation Confirmation',
-        text: `Dear ${name},\n\nYour appointment on ${date} at ${time} has been successfully canceled.\n\nIf you have any questions, feel free to contact us.\n\nBest regards,\nAE Decor`,
+        text: `Dear ${name},\n\nYour appointment on ${date} at ${formattedTime} has been successfully canceled.\n\nIf you have any questions, feel free to contact us.\n\nBest regards,\nAE Decor`,
       };
 
-      // Email to the business
       const businessMailOptions = {
         from: `"AE Decor" <${process.env.EMAIL_USER}>`,
         to: process.env.EMAIL_USER,
         subject: 'Appointment Canceled',
-        text: `An appointment has been canceled. Here are the details:\n\nName: ${name}\nEmail: ${email}\nDate: ${date}\nTime: ${time}\n\nPlease update your records accordingly.`,
+        text: `An appointment has been canceled. Here are the details:\n\nName: ${name}\nEmail: ${email}\nDate: ${date}\nTime: ${formattedTime}\n\nPlease update your records accordingly.`,
       };
 
       try {
@@ -264,15 +233,12 @@ app.delete('/api/appointments', async (req, res) => {
   }
 });
 
-// Serve the React app's static files
+// Serve frontend
 const frontendPath = path.join(__dirname, 'frontend', 'build');
 app.use(express.static(frontendPath));
-
-// Catch-all route to serve the React app for any unknown routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// Start the server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
