@@ -63,7 +63,7 @@ function Appointments() {
     const formattedTime = convertTo24Hour(selectedTime);
 
     try {
-      const response = await axios.post('http://localhost:5001/api/appointments', {
+      const response = await axios.post('https://ae-decor.onrender.com/api/appointments', {
         date: formattedDate,
         time: formattedTime,
         ...userDetails,
@@ -88,7 +88,7 @@ function Appointments() {
 
   const handleCancelAppointments = async (appointmentsToCancel) => {
     try {
-      const response = await axios.delete('http://localhost:5001/api/appointments', {
+      const response = await axios.delete('https://ae-decor.onrender.com/api/appointments', {
         data: { appointments: appointmentsToCancel },
       });
 
@@ -109,7 +109,7 @@ function Appointments() {
         const formattedDate = selectedDate.toISOString().split('T')[0];
         console.log('Fetching booked times for date:', formattedDate);
 
-        const response = await axios.get('http://localhost:5001/api/appointments', {
+        const response = await axios.get('https://ae-decor.onrender.com/api/appointments', {
           params: { date: formattedDate },
         });
 
